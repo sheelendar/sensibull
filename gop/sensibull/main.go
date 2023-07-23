@@ -1,23 +1,22 @@
 package main
 
 import (
-	"Go/src/go/go-sensibull/handlers"
-	"github.com/gin-gonic/gin"
+	"Go/src/gop/sensibull/consts"
+	"Go/src/gop/sensibull/internal"
+	"Go/src/gop/sensibull/logger"
+	"Go/src/gop/sensibull/utils"
+	"fmt"
+	"net/http"
 )
 
 func main() {
-	// Initialize Redis client
-	//utils.InitRedis("localhost:6379", "", 0)
 
-	// Create a Gin router
-	router := gin.Default()
+	utils.InitRedis(consts.RedisHostAndPort, "", 0)
+	internal.InitHttpClient()
+	fmt.Println("Server listening on :", consts.HostAndPort)
 
-	// Define the GET API route and its handler
-	router.GET("/get-data", handlers.GetHandler)
-
-	// Define the POST API route and its handler
-	router.POST("/post-data", handlers.PostHandler)
-
-	// Start the server
-	router.Run(":8080")
+	if err := http.ListenAndServe(consts.HostAndPort, nil); err != nil {
+		fmt.Println(err)
+		logger.SensibullError{Message: "Not able to start server port check on priority", ErrorCode: http.StatusInternalServerError}.Err()
+	}
 }
