@@ -4,6 +4,7 @@ const (
 	// External api constants
 	UnderlyingAssetURL  = "https://prototype.sbulltech.com/api/underlyings"
 	DerivativesPriceURL = "https://prototype.sbulltech.com/api/derivatives"
+	WebSocketServerURL  = "wss://prototype.sbulltech.com/api/ws"
 
 	// Internal API constants
 	UnderlyingPriceURL = "/underlying-prices"
@@ -13,16 +14,23 @@ const (
 	SymbolToTokenRedisKey = "SymbolToTokenRedisKey"
 	DerivativeKey         = "derivative_%d"
 	ALLUnderlyingAsset    = "allUnderlyingAsset"
+	DTUTKM                = "dtutkm"
 	RedisHostAndPort      = "localhost:6379"
 
-	Minute      = 60
-	Second      = 1
-	Hour        = Minute * 60
-	FiveMinutes = Minute * 5
-
 	//server constants
+	HostAndPort   = ":19093"
+	Symbol        = "symbol"
+	DataTypeQuote = "quote"
+	DataTypePing  = "ping"
+	DataTypeError = "error"
 
-	HostAndPort = ":19093"
+	//jobs constants
+	DefaultNumOfWorkers = 10
+	DefaultNumOfJobs    = 10
 
-	Symbol = "symbol"
+	//msg
+	ErrInDerivativeResponse        = "error occurred into derivative response"
+	ErrInParsingDerivativeResponse = "Failed to create JSON from derivative response"
+	ErrInUnderlyingResponse        = "error occurred into underlying response"
+	ErrInParsingUnderlyingResponse = "Failed to create JSON from underlyingHandler response"
 )

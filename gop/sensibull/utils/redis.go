@@ -4,8 +4,11 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis"
+	"gop/sensibull/consts"
+	"gop/sensibull/dao"
 	"time"
+
+	"github.com/go-redis/redis"
 )
 
 var (
@@ -14,7 +17,7 @@ var (
 
 // InitRedis initializes the Redis client
 // docker run -d --name my-redis -p 6379:6379 redis:latest
-func InitRedis(addr, password string, db int) {
+func InitRedis(addr, password string, db int) *redis.Client {
 	fmt.Println("redis connection init..")
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -26,11 +29,11 @@ func InitRedis(addr, password string, db int) {
 		fmt.Println("redis err when ping ", err)
 	}
 	fmt.Println("redis ping result:", res)
+	return redisClient
 }
 
-// GetFromCache retrieves data from Redis cache
-func GetFromCache(key string) (string, error) {
-	//ctx := context.Background()
+// GetStringFromCache retrieves string data from Redis cache
+func GetStringFromCache(key string) (string, error) {
 	val, err := redisClient.Get(key).Result()
 	if err == redis.Nil {
 		return "", nil
@@ -44,7 +47,7 @@ func GetFromCache(key string) (string, error) {
 func GetSymbolToTokenMapFromCache(key string) (map[string]int, error) {
 	val, err := redisClient.Get(key).Bytes()
 	if err != nil {
-		// return error
+		return nil, err
 	}
 	var symbolToTokenCache map[string]int
 	err = json.Unmarshal(val, &symbolToTokenCache)
@@ -55,13 +58,8 @@ func GetSymbolToTokenMapFromCache(key string) (map[string]int, error) {
 	return symbolToTokenCache, err
 }
 
-// SetStringToCache sets data in Redis cache with an expiration time
-func SetStringToCache(key, value string, expiration time.Duration) error {
-	return redisClient.Set(key, value, expiration).Err()
-}
-
-// SaveObjectsInRedis is used to save a map in Redis
-func SaveObjectsInRedis(key string, data interface{}, expiryTime time.Duration) error {
+// SaveObjectInRedis is used to save a map in Redis
+func SaveObjectInRedis(key string, data interface{}, expiryTime time.Duration) error {
 	// Convert the map to JSON format
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -91,4 +89,35 @@ func GetObjectFromRedis(key string, data interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// SaveDerivativeResponseInDB is used to save derivative obj into db with token as key.
+func SaveDerivativeResponseInDB(token int, res *dao.UnderlyingAsset) error {
+	if res == nil || res.Payload == nil {
+		return fmt.Errorf("response is nil nothing to same db")
+	}
+	dbUnderlyingAsset := dao.DBUnderlyingAssetObject{DerivativeToDataMap: map[int]dao.Data{}}
+	dbUnderlyingAsset.Success = res.Success
+	for i := 0; i < len(res.Payload); i++ {
+		dbUnderlyingAsset.DerivativeToDataMap[res.Payload[i].Token] = res.Payload[i]
+	}
+	return SaveObjectInRedis(fmt.Sprintf(consts.DerivativeKey, token), dbUnderlyingAsset, time.Minute)
+}
+
+// GetDerivativeResponseFromDB is used to get derivative obj from db with token as key.
+func GetDerivativeResponseFromDB(token int) (*dao.UnderlyingAsset, error) {
+	derivativeRedisKey := fmt.Sprintf(consts.DerivativeKey, token)
+	dbUnderlyingAsset := dao.DBUnderlyingAssetObject{}
+
+	err := GetObjectFromRedis(derivativeRedisKey, &dbUnderlyingAsset)
+	underlyingAsset := dao.UnderlyingAsset{Payload: make([]dao.Data, len(dbUnderlyingAsset.DerivativeToDataMap))}
+	if err != nil {
+		return nil, fmt.Errorf("getting error while fetching derivative response from db")
+	}
+	i := 0
+	for _, data := range dbUnderlyingAsset.DerivativeToDataMap {
+		underlyingAsset.Payload[i] = data
+		i++
+	}
+	return &underlyingAsset, nil
 }

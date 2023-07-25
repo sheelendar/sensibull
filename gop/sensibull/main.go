@@ -1,17 +1,17 @@
 package main
 
 import (
-	"Go/src/gop/sensibull/consts"
-	"Go/src/gop/sensibull/internal"
-	"Go/src/gop/sensibull/logger"
-	"Go/src/gop/sensibull/utils"
 	"fmt"
+	"gop/sensibull/consts"
+	"gop/sensibull/internal"
+	"gop/sensibull/logger"
+	"gop/sensibull/utils"
+
 	"net/http"
 )
 
 func main() {
-
-	utils.InitRedis(consts.RedisHostAndPort, "", 0)
+	redisCli := utils.InitRedis(consts.RedisHostAndPort, "", 0)
 	internal.InitHttpClient()
 	fmt.Println("Server listening on :", consts.HostAndPort)
 
@@ -19,4 +19,10 @@ func main() {
 		fmt.Println(err)
 		logger.SensibullError{Message: "Not able to start server port check on priority", ErrorCode: http.StatusInternalServerError}.Err()
 	}
+
+	defer func() {
+		if redisCli != nil {
+			redisCli.Close()
+		}
+	}()
 }

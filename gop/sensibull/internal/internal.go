@@ -1,12 +1,13 @@
 package internal
 
 import (
-	"Go/src/gop/sensibull/consts"
-	"Go/src/gop/sensibull/handlers"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
+	"gop/sensibull/consts"
+	"gop/sensibull/handlers"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 var router *mux.Router
@@ -15,28 +16,25 @@ func init() {
 	router = mux.NewRouter()
 }
 
+// InitHttpClient init internal url for upcoming request.
 func InitHttpClient() {
-	// Define the GET API route and its handler
 	router.HandleFunc(consts.UnderlyingPriceURL, underlyingHandler).Methods("GET")
 	router.HandleFunc(consts.DerivativePriceURL, derivativeHandler).Methods("GET")
-
-	// Define the POST API route and its handler
-	//router.HandleFunc("/post-data", derivativeHandler).Methods("POST")
-
 	http.Handle("/", router)
 }
 
+// underlyingHandler call GetUnderlyingPricesHandler return all underlying response.
 func underlyingHandler(response http.ResponseWriter, req *http.Request) {
 	res := handlers.GetUnderlyingPricesHandler()
 	if res == nil {
-		http.Error(response, "error occurred into underlying response", http.StatusInternalServerError)
+		http.Error(response, consts.ErrInUnderlyingResponse, http.StatusInternalServerError)
 		return
 	}
 
 	// Convert the underlying data to JSON format
 	responseJSON, err := json.Marshal(res)
 	if err != nil {
-		http.Error(response, "Failed to create JSON from underlyingHandler response", http.StatusInternalServerError)
+		http.Error(response, consts.ErrInParsingUnderlyingResponse, http.StatusInternalServerError)
 		return
 	}
 
@@ -49,20 +47,21 @@ func underlyingHandler(response http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// derivativeHandler call GetDerivativePricesHandler and return derivative response.
 func derivativeHandler(response http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	symbol := vars[consts.Symbol]
 
 	res, err := handlers.GetDerivativePricesHandler(symbol)
 	if res == nil || err != nil {
-		http.Error(response, "error occurred into derivative response", http.StatusInternalServerError)
+		http.Error(response, consts.ErrInDerivativeResponse, http.StatusInternalServerError)
 		return
 	}
 
 	// Convert the Derivative data to JSON format
 	responseJSON, err := json.Marshal(res)
 	if err != nil {
-		http.Error(response, "Failed to create JSON from derivative response", http.StatusInternalServerError)
+		http.Error(response, consts.ErrInParsingDerivativeResponse, http.StatusInternalServerError)
 		return
 	}
 
