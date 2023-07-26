@@ -1,0 +1,11 @@
+version: latest
+
+services:
+  worker:
+    build: .
+    working_dir: /Go/src/sensibull/gop/sensibull/worker
+    volumes:
+      - .:/Go/src/sensibull/gop/sensibull/worker
+
+
+

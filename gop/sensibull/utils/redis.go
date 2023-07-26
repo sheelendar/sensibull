@@ -27,6 +27,7 @@ func InitRedis(addr, password string, db int) *redis.Client {
 	res, err := redisClient.Ping().Result()
 	if err != nil {
 		fmt.Println("redis err when ping ", err)
+		panic("not able to connect with db")
 	}
 	fmt.Println("redis ping result:", res)
 	return redisClient

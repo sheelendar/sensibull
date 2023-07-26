@@ -15,7 +15,7 @@ const (
 	DerivativeKey         = "derivative_%d"
 	ALLUnderlyingAsset    = "allUnderlyingAsset"
 	DTUTKM                = "dtutkm"
-	RedisHostAndPort      = "localhost:6379"
+	RedisHostAndPort      = "redis:6379"
 
 	//server constants
 	HostAndPort   = ":19093"

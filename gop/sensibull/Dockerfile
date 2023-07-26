@@ -19,4 +19,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /sensibuill
 EXPOSE 19093
 
 # Command to run the Go application
-CMD ["./main"]
+CMD ["/sensibuill"]

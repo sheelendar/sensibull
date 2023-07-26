@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"Go/src/gop/sensibull/consts"
+	"gop/sensibull/consts"
 )
 
 var jobQueue chan SubscribeJob
